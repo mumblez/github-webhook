@@ -55,7 +55,6 @@ func HandleMultiple(payload interface{}, header webhooks.Header) {
 	switch payload.(type) {
 
 	// only handle commit / push events on master!
-
 	case github.PushPayload:
 		push := payload.(github.PushPayload)
 		// Do whatever you want from here...
@@ -63,6 +62,11 @@ func HandleMultiple(payload interface{}, header webhooks.Header) {
 		refs := strings.Split(push.Ref, "/")
 		branch := refs[len(refs)-1]       // last
 		fmt.Printf("Branch: %+v", branch) // ref: refs/heads/[branch]
+
+	// modify file so inotify can react / trigger
+	// if err := os.Chtimes("some-filename", time.Now(), time.Now()); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	case github.ReleasePayload:
 		release := payload.(github.ReleasePayload)
