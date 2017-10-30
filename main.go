@@ -30,6 +30,7 @@ func main() {
 	fs.IntVar(&port, "port", 8080, "tcp port to listen on")
 	fs.StringVar(&secret, "secret", "superDuperSecret", "github webhook secret")
 	fs.StringVar(&path, "path", "payload", "url path to accept json post request, e.g. /payload")
+	fs.StringVar(&file, "file", "", "file to modify so inotify can trigger a real script!")
 	fs.Parse(os.Args[1:])
 
 	fmt.Println("Port: ", port)
