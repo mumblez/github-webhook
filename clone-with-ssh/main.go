@@ -43,6 +43,8 @@ func main() {
 
 	CheckIfError(err)
 
+	// TODO: refresh repository example - https://github.com/src-d/go-git/blob/master/_examples/pull/main.go
+
 	// ... retrieving the branch being pointed by HEAD
 	ref, err := r.Head()
 	CheckIfError(err)
