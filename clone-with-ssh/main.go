@@ -20,6 +20,8 @@ func main() {
 	sshKey := "/path/to/key"
 	sshPass := "hello"
 
+	git.ErrIsBareRepository
+
 	currentUser, err := user.Current()
 	CheckIfError(err)
 
