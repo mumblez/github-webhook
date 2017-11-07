@@ -1,2 +1,2 @@
-GHW_PORT=1234 GHW_SECRET="secret" GHW_PATH="/some/path" GHW_REPO_URL="git@github.com:ns/bla.git" GHW_REPO_DIR="/repo/path" GHW_REPO_SSH_KEY="/path/to/ssh/key" GHW_REPO_SSH_PASS="passphraseToSSHKey" go run main.go
-go run main.go -port 1234 -secret secret123 -path "/some/path" -repo_url "git@github.com:ns/bla.git" -repo_dir "/repo/path" -repo_ssh_key "/path/to/ssh/key" -repo_ssh_pass "passphrase123"
+GHW_REPO_BRANCH=master GHW_PORT=1234 GHW_SECRET="secret" GHW_PATH="/some/path" GHW_REPO_URL="git@github.com:ns/bla.git" GHW_REPO_DIR="/repo/path" GHW_REPO_SSH_KEY="/path/to/ssh/key" GHW_REPO_SSH_PASS="passphraseToSSHKey" go run main.go
+go run main.go -port 1234 -secret secret123 -path "/some/path" -repo_url "git@github.com:ns/bla.git" -repo_dir "/repo/path" -repo_ssh_key "/path/to/ssh/key" -repo_ssh_pass "passphrase123" -repo_branch master

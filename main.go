@@ -47,6 +47,7 @@ func main() {
 	fmt.Println("Path: ", cfg.path)
 	fmt.Println("Repository Info:")
 	fmt.Println("url: ", cfg.repo_url)
+	fmt.Println("branch: ", cfg.repo_branch)
 	fmt.Println("dir: ", cfg.repo_dir)
 	fmt.Println("ssh key: ", cfg.repo_ssh_key)
 	fmt.Println("ssh pass: ", cfg.repo_ssh_pass)
