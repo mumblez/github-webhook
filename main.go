@@ -5,11 +5,14 @@ import (
 	"os"
 	"strconv"
 
-	"strings"
+	//	"strings"
 
 	"github.com/namsral/flag"
 	"gopkg.in/go-playground/webhooks.v3"
 	"gopkg.in/go-playground/webhooks.v3/github"
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 type Config struct {
@@ -27,10 +30,9 @@ var cfg Config
 
 func main() {
 
-	//cfg := new(Config)
-
+	// Initialise our settings
 	fs := flag.NewFlagSetWithEnvPrefix(os.Args[0], "GHW", 0)
-	fs.IntVar(&cfg.port, "port", 8080, "tcp port to listen on")
+	fs.IntVar(&cfg.port, "port", 4567, "tcp port to listen on")
 	fs.StringVar(&cfg.secret, "secret", "superDuperSecret", "github webhook secret")
 	fs.StringVar(&cfg.path, "path", "payload", "url path to accept json post request, e.g. /payload")
 	fs.StringVar(&cfg.repo_url, "repo_url", "", "git url to refresh e.g. git@github.com:ns/project.git")
@@ -41,24 +43,10 @@ func main() {
 
 	fs.Parse(os.Args[1:])
 
-	// debug
-	fmt.Println("Port: ", cfg.port)
-	fmt.Println("Secret: ", cfg.secret)
-	fmt.Println("Path: ", cfg.path)
-	fmt.Println("Repository Info:")
-	fmt.Println("url: ", cfg.repo_url)
-	fmt.Println("branch: ", cfg.repo_branch)
-	fmt.Println("dir: ", cfg.repo_dir)
-	fmt.Println("ssh key: ", cfg.repo_ssh_key)
-	fmt.Println("ssh pass: ", cfg.repo_ssh_pass)
 	fmt.Println("Starting webhook....")
 
-	os.Exit(0)
-
 	hook := github.New(&github.Config{Secret: cfg.secret})
-	//hook.RegisterEvents(HandleMultiple, github.ReleaseEvent, github.PullRequestEvent, github.PushEvent) // Add as many as you want
 	hook.RegisterEvents(HandleMultiple, github.PushEvent) // Add as many as you want
-
 	err := webhooks.Run(hook, ":"+strconv.Itoa(cfg.port), cfg.path)
 	if err != nil {
 		fmt.Println(err)
@@ -66,9 +54,51 @@ func main() {
 }
 
 // GitRefresh
-// func GitRefresh(ssh_key, ssh_pass, url, dir string) bool {
-// 	fmt.Println('placeholder')
-// }
+func GitRefresh() {
+	sshAuth, err := ssh.NewPublicKeysFromFile("git", cfg.repo_ssh_key, cfg.repo_ssh_pass)
+	if err != nil {
+		fmt.Println("Error initialising ssh key and pass")
+	}
+
+	// If directory exists just refresh else clone and init
+	if _, err := os.Stat(cfg.repo_dir + "/.git"); err == nil {
+		fmt.Println("Repository exists, attempting to update...")
+		r, err := git.PlainOpen(cfg.repo_dir)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		w, err := r.Worktree()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		err = w.Pull(&git.PullOptions{
+			RemoteName:    "origin",
+			ReferenceName: plumbing.ReferenceName("refs/heads/" + cfg.repo_branch),
+			SingleBranch:  true,
+			Auth:          sshAuth,
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println("Initial clone of repository...")
+		_, err := git.PlainClone(cfg.repo_dir, false, &git.CloneOptions{
+			URL:           cfg.repo_url,
+			ReferenceName: plumbing.ReferenceName("refs/heads/" + cfg.repo_branch),
+			SingleBranch:  true,
+			Auth:          sshAuth,
+		})
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("Error cloning repository")
+		}
+
+	}
+
+	fmt.Println("Git Refresh complete")
+}
 
 // HandleMultiple handles multiple GitHub events
 func HandleMultiple(payload interface{}, header webhooks.Header) {
@@ -77,16 +107,17 @@ func HandleMultiple(payload interface{}, header webhooks.Header) {
 
 	switch payload.(type) {
 
-	// only handle commit / push events on master!
+	// only push events on master!
 	case github.PushPayload:
 		push := payload.(github.PushPayload)
-		// Do whatever you want from here...
-		//		fmt.Printf("Push: %+v", push)
-		refs := strings.Split(push.Ref, "/")
-		branch := refs[len(refs)-1]       // last
-		fmt.Printf("Branch: %+v", branch) // ref: refs/heads/[branch]
+		//fmt.Printf("Repository info: %+v\n", push.Repository)
 
-		// modify file so inotify can react / trigger
+		// Refresh only if 'master' branch and repository url matches
+		if push.Ref == "refs/heads/"+cfg.repo_branch && push.Repository.SSHURL == cfg.repo_url {
+			GitRefresh()
+		}
+
+		// modify file so inocron can react / trigger
 		// if err := os.Chtimes("some-filename", time.Now(), time.Now()); err != nil {
 		// 	log.Fatal(err)
 		// }
