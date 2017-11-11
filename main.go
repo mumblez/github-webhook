@@ -8,7 +8,7 @@ import (
 	//	"strings"
 
 	"github.com/namsral/flag"
-	"gopkg.in/go-playground/webhooks.v3"
+	webhooks "gopkg.in/go-playground/webhooks.v3"
 	"gopkg.in/go-playground/webhooks.v3/github"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -33,6 +33,7 @@ func main() {
 	// Initialise our settings
 	fs := flag.NewFlagSetWithEnvPrefix(os.Args[0], "GHW", 0)
 	fs.IntVar(&cfg.port, "port", 4567, "tcp port to listen on")
+	fs.String(flag.DefaultConfigFlagname, "", "path to config file")
 	fs.StringVar(&cfg.secret, "secret", "superDuperSecret", "github webhook secret")
 	fs.StringVar(&cfg.path, "path", "payload", "url path to accept json post request, e.g. /payload")
 	fs.StringVar(&cfg.repo_url, "repo_url", "", "git url to refresh e.g. git@github.com:ns/project.git")
