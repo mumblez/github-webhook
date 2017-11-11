@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
-
-	//	"strings"
 
 	"github.com/namsral/flag"
 	webhooks "gopkg.in/go-playground/webhooks.v3"
@@ -16,14 +15,16 @@ import (
 )
 
 type Config struct {
-	port          int
-	secret        string
-	path          string
-	repo_url      string
-	repo_branch   string
-	repo_dir      string
-	repo_ssh_key  string
-	repo_ssh_pass string
+	port              int
+	secret            string
+	path              string
+	repo_url          string
+	repo_branch       string
+	repo_dir          string
+	repo_ssh_key      string
+	repo_ssh_pass     string
+	health_check_path string
+	health_check_port int
 }
 
 var cfg Config
@@ -41,8 +42,17 @@ func main() {
 	fs.StringVar(&cfg.repo_dir, "repo_dir", "", "local directory path for repository")
 	fs.StringVar(&cfg.repo_ssh_key, "repo_ssh_key", "", "path to ssh private key file")
 	fs.StringVar(&cfg.repo_ssh_pass, "repo_ssh_pass", "", "ssh password to provided private key (optional)")
-
+	fs.StringVar(&cfg.health_check_path, "health_check_path", "/ping", "url path to for health checks, e.g. /ping")
+	fs.IntVar(&cfg.health_check_port, "health_check_port", 9091, "port for health checks, e.g. 9091")
 	fs.Parse(os.Args[1:])
+
+	// add a health check
+	http.HandleFunc(cfg.health_check_path, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Pong")
+	})
+
+	go http.ListenAndServe(":"+strconv.Itoa(cfg.health_check_port), nil)
+	fmt.Printf("Health check on path %s and port %d\n", cfg.health_check_path, cfg.health_check_port)
 
 	fmt.Println("Starting webhook....")
 
@@ -52,6 +62,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 }
 
 // GitRefresh
