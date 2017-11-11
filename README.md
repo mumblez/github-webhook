@@ -32,6 +32,8 @@ We only handle a single repository!
 | string | -repo_url git@github.com:ns/repo.git | REPO_URL="git@github.com:ns/repo.git"   | repo_url git@github.com:ns/repo.git |       | git url (ssh, not http) |
 | string | -repo_branch master                  | REPO_BRANCH="master"                    | repo_branch master                  | master| branch to clone / update |
 | string | -repo_dir /path/to/clone/to          | REPO_DIR="/path/to/clone/to"            | repo_dir /path/to/clone/to          |       | local directory to clone repository to |
+| int    | -health_check_port 9091              | HEALTH_CHECK_PORT=9091                  | health_check_port 9091              | 9091  | port to handle health check |
+| string | -health_check_path /ping             | HEALTH_CHECK_PATH="/ping"               | health_check_path /ping             | /ping | path to handle health check |
 
 If we set a configuration file, pass the path to `-config` on the cli
 
